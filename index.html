@@ -3,16 +3,26 @@
 	<head>
 		<title>Volume Meter Sample</title>
 		<style>
+			.calc {color: #999; font-size: 0.8em; display: block;}
 		</style>
-		<!-- Include the volume meter component -->
-		<script src="volume-meter.js"></script>
-		<!-- Include the main app logic -->
-		<script src="main.js"></script>
 	</head>
 	<body>
-	<h1>Volume Arc Meter</h1>
-	<p>volume: <span id="vol"></span></p>
-	<canvas id="meter" width="300" height="300"></canvas>
+	
+		<h1>Volume Arc Meter</h1>
+		
+		<p>Audio API volume: <span id="apiVol"></span> </p>
+
+		<p>
+			Cleaned Volume number: <span id="vol"></span>
+			<span class="calc">Math.ceil(API volume * 1000)</span>
+		</p>
+
+		
+
+		<canvas id="meter" width="300" height="300"></canvas>
+
+		<script src="volume-meter.js"></script>
+		<script src="main.js"></script>
 
 	</body>
 </html>

@@ -29,24 +29,30 @@ var log = function() {
 var audioContext = null;
 var canvas = null;
 var meter = null;
-var canvasContext = null;
-var WIDTH = 500;
-var HEIGHT = 500;
+var context = null;
 var rafID = null;
-var x, y;
+var x, y, apiVol, volText;
 // size of the circle
 var radius = 100;
-var volText = document.getElementById("vol");
+
+var fps = 5;
+var now;
+var then = Date.now();
+var interval = 1000 / fps;
+var delta;
+
 window.onload = function() {
 
   canvas = document.getElementById("meter");
+  apiVol = document.getElementById("apiVol");
+  volText = document.getElementById("vol");
 
   // get exact center coordinates
   x = canvas.width / 2;
   y = canvas.height / 2;
 
   // grab our canvas
-  canvasContext = canvas.getContext("2d");
+  context = canvas.getContext("2d");
 
   // monkeypatch Web Audio
   window.AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -93,35 +99,41 @@ function gotStream(stream) {
 
 function drawLoop(time) {
 
-  //canvasContext.clearRect(0, 0, WIDTH, HEIGHT);
+  now = Date.now();
+  delta = now - then;
 
-  //canvasContext.globalCompositeOperation = 'destination-out';
-  canvasContext.beginPath();
-  canvasContext.clearRect(0, 0, canvas.width, canvas.height);
-  canvasContext.closePath();
+  context.beginPath();
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  context.closePath();
 
   // check if we're currently clipping
   if (meter.checkClipping()) {
-    canvasContext.strokeStyle = "red";
+    context.strokeStyle = "red";
   } else {
-    canvasContext.strokeStyle = "blue";
+    context.strokeStyle = "blue";
   }
-
 
   // clear the background
   var startAngle = 0.5 * Math.PI;
   var endAngle = ((meter.volume * 1.5) * Math.PI) - 4;
+  var volumation = Math.ceil(meter.volume * 1000);
 
-  vol.textContent = Math.ceil(meter.volume * 1000);
   //log(meter.volume, endAngle);
 
-  canvasContext.beginPath();
-  canvasContext.arc(x, y, radius, startAngle, endAngle, false);
-  canvasContext.lineWidth = 20;
-  canvasContext.stroke();
+  context.beginPath();
+  context.arc(x, y, radius, startAngle, endAngle, false);
+  context.lineWidth = 20;
+  context.stroke();
 
-  // draw a bar based on the current volume
-  // canvasContext.fillRect(0, 0, meter.volume * WIDTH * 1.4, HEIGHT);
+  if (delta > interval) {
+    then = now - (delta % interval);
+    // updating text in DOM and canvas
+    apiVol.textContent = meter.volume;
+    vol.textContent = volumation;
+    //context.font = "bold 40px Arial";
+    //context.fillText(volumation, x - 30, y);
+  }
+
 
   // set up the next visual callback
   rafID = window.requestAnimationFrame(drawLoop);
