@@ -36,7 +36,7 @@ var rafID = null;
 var x, y;
 // size of the circle
 var radius = 100;
-
+var volText = document.getElementById("vol");
 window.onload = function() {
 
   canvas = document.getElementById("meter");
@@ -111,6 +111,8 @@ function drawLoop(time) {
   // clear the background
   var startAngle = 0.5 * Math.PI;
   var endAngle = ((meter.volume * 1.5) * Math.PI) - 4;
+
+  vol.textContent = Math.ceil(meter.volume * 1000);
   //log(meter.volume, endAngle);
 
   canvasContext.beginPath();
