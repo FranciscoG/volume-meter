@@ -3,24 +3,27 @@
 	<head>
 		<title>Volume Meter Sample</title>
 		<style>
+			body { margin: 0; padding: 0; background-color: #888; font-family: sans-serif;}
+			.container { border: 1px solid #999; background-color: #fff; width: 500px; margin: 30px auto; padding: 15px; box-shadow:  3px 3px 2px 0px rgba(50, 50, 50, 0.76);}
 			.calc {color: #999; font-size: 0.8em; display: block;}
+			#meter { margin: 0 auto; width: 300px; display: block;}
 		</style>
 	</head>
 	<body>
-	
-		<h1>Volume Arc Meter</h1>
-		
-		<p>Audio API volume: <span id="apiVol"></span> </p>
+		<div class="container">
+			<h1>Volume Arc Meter</h1>
 
-		<p>
-			Cleaned Volume number: <span id="vol"></span>
-			<span class="calc">Math.ceil(API volume * 1000)</span>
-		</p>
+			<p>Audio API volume: <span id="apiVol"></span> </p>
 
-		
+			<p>
+				Cleaned Volume number: <span id="vol"></span>
+				<span class="calc">Math.ceil(API volume * 1000)</span>
+			</p>
 
-		<canvas id="meter" width="300" height="300"></canvas>
-
+			<canvas id="meter" width="300" height="300">
+				Sorry your browser does not support HTML5 canvas
+			</canvas>
+		</div>
 		<script src="volume-meter.js"></script>
 		<script src="main.js"></script>
 

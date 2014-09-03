@@ -122,7 +122,7 @@ function drawLoop(time) {
 
   context.beginPath();
   context.arc(x, y, radius, startAngle, endAngle, false);
-  context.lineWidth = 20;
+  context.lineWidth = 25;
   context.stroke();
 
   if (delta > interval) {
