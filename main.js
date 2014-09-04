@@ -32,20 +32,31 @@ var meter = null;
 var context = null;
 var rafID = null;
 var x, y, apiVol, volText;
+
 // size of the circle
 var radius = 100;
 
+// timing related 
 var fps = 5;
 var now;
 var then = Date.now();
 var interval = 1000 / fps;
-var delta;
+
+// how long to run the meter after pressing begin
+var clickStartTime = null;
+var count = 1;
+var howlongInSeconds = 5;
+
+var elapsed, begin, countdown, stop;
 
 window.onload = function() {
 
   canvas = document.getElementById("meter");
   apiVol = document.getElementById("apiVol");
   volText = document.getElementById("vol");
+  begin = document.getElementById("begin");
+  countdown = document.getElementById("countdown");
+  stop = document.getElementById("stop");
 
   // get exact center coordinates
   x = canvas.width / 2;
@@ -59,6 +70,7 @@ window.onload = function() {
 
   // grab an audio context
   audioContext = new AudioContext();
+
 
   // Attempt to get audio input
   try {
@@ -91,8 +103,14 @@ function gotStream(stream) {
   meter = createAudioMeter(audioContext);
   mediaStreamSource.connect(meter);
 
-  // kick off the visual updating
-  drawLoop();
+  begin.addEventListener("click", function() {
+    clickStartTime = internalStart = Date.now();
+    drawLoop();
+  }, false);
+
+  stop.addEventListener("click", function() {
+    window.cancelAnimationFrame(rafID);
+  }, false);
 }
 
 
@@ -100,7 +118,7 @@ function gotStream(stream) {
 function drawLoop(time) {
 
   now = Date.now();
-  delta = now - then;
+  elapsed = now - then;
 
   context.beginPath();
   context.clearRect(0, 0, canvas.width, canvas.height);
@@ -125,15 +143,27 @@ function drawLoop(time) {
   context.lineWidth = 25;
   context.stroke();
 
-  if (delta > interval) {
-    then = now - (delta % interval);
-    // updating text in DOM and canvas
+  if (elapsed > interval) {
+    then = now - (elapsed % interval);
+
     apiVol.textContent = meter.volume;
-    vol.textContent = volumation;
+
+    // only update the text if volume is higher so we always know the loudest it got
+    if (volumation > vol.textContent) {
+      vol.textContent = volumation;
+    }
+
+    countdown.textContent = Math.ceil((now - clickStartTime) / 1000);
+
     //context.font = "bold 40px Arial";
     //context.fillText(volumation, x - 30, y);
   }
 
+  if ((now - clickStartTime) > (howlongInSeconds * 1000)) {
+    window.cancelAnimationFrame(rafID);
+    rafID = null;
+    return;
+  }
 
   // set up the next visual callback
   rafID = window.requestAnimationFrame(drawLoop);
