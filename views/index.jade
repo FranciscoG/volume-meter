@@ -1,0 +1,16 @@
+extends layout
+
+block content
+  h1 Volume Arc Meter
+  p Audio API volume: <span id="apiVol"></span>
+  p.
+    Arbitrary Volume number: <span id="vol">0</span>
+    <span class="calc">API volume * 1000 (rounded up)</span>
+
+  span#begin.button Click here to begin
+
+  p#countdown 0
+
+  canvas#meter(width="300", height="300") Sorry your browser does not support HTML5 canvas
+
+  span#stop.button Stop

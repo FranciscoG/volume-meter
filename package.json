@@ -1,0 +1,21 @@
+{
+  "name": "volume-meter",
+  "version": "0.0.0",
+  "description": "Audio input test",
+  "main": "server.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/FranciscoG/volume-meter.git"
+  },
+  "author": "Francisco Gutierrez",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/FranciscoG/volume-meter/issues"
+  },
+  "private": true,
+  "dependencies": {
+    "express": "4.x",
+    "jade": "^1.6.0",
+    "mongoose": "^3.8.16"
+  }
+}
