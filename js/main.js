@@ -22,11 +22,34 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+var log_error = function() {
+  return console.error(Array.prototype.slice.call(arguments));
+};
+
 var log = function() {
   return console.log(Array.prototype.slice.call(arguments));
 };
 
-var audioContext = null;
+/****************************************************************
+ * Monkey Patching Audio Api section
+ */
+
+// monkeypatch Web Audio
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
+// monkeypatch getUserMedia
+navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+
+navigator.cancelAnimationFrame = navigator.cancelAnimationFrame || navigator.webkitCancelAnimationFrame || navigator.mozCancelAnimationFrame;
+
+navigator.requestAnimationFrame = navigator.requestAnimationFrame || navigator.webkitRequestAnimationFrame || navigator.mozRequestAnimationFrame;
+
+
+/****************************************************************
+ * Being Global Variables
+ */
+
+var audioContext = new AudioContext();
 var canvas = null;
 var meter = null;
 var context = null;
@@ -49,71 +72,73 @@ var howlongInSeconds = 5;
 
 var elapsed, begin, countdown, stop;
 
-window.onload = function() {
-
-  canvas = document.getElementById("meter");
-  apiVol = document.getElementById("apiVol");
-  volText = document.getElementById("vol");
-  begin = document.getElementById("begin");
-  countdown = document.getElementById("countdown");
-  stop = document.getElementById("stop");
-
-  // get exact center coordinates
-  x = canvas.width / 2;
-  y = canvas.height / 2;
-
-  // grab our canvas
-  context = canvas.getContext("2d");
-
-  // monkeypatch Web Audio
-  window.AudioContext = window.AudioContext || window.webkitAudioContext;
-
-  // grab an audio context
-  audioContext = new AudioContext();
-
-
-  // Attempt to get audio input
-  try {
-    // monkeypatch getUserMedia
-    navigator.getUserMedia =
-      navigator.getUserMedia ||
-      navigator.webkitGetUserMedia ||
-      navigator.mozGetUserMedia;
-
-    // ask for an audio input
-    navigator.getUserMedia({
-      audio: true
-    }, gotStream, didntGetStream);
-  } catch (e) {
-    alert('getUserMedia threw exception :' + e);
-  }
-
-};
-
+// audio recorder related globals
+var audioInput = null,
+  inputPoint = null,
+  audioRecorder = null;
 
 function didntGetStream() {
-  alert('Stream generation failed.');
+  log_error('Stream generation failed.');
 }
+
+/****************************************************************
+ * Functions for audio recording
+ */
+
+function saveAudio() {
+  audioRecorder.exportWAV(doneEncoding);
+}
+
+function gotBuffers(buffers) {
+  // the ONLY time gotBuffers is called is right after a new recording is completed - 
+  // so here's where we should set up the download.
+  audioRecorder.exportWAV(doneEncoding);
+}
+
+function doneEncoding(blob) {
+  Recorder.setupDownload(blob, "myScream_" + Date.now() + ".wav");
+}
+
+/****************************************************************
+ * We got an Audio stream, now lets do something with it
+ */
 
 function gotStream(stream) {
   // Create an AudioNode from the stream.
   var mediaStreamSource = audioContext.createMediaStreamSource(stream);
 
+  // for audio recording
+  inputPoint = audioContext.createGain();
+  audioInput = mediaStreamSource;
+  audioInput.connect(inputPoint);
+  audioRecorder = new Recorder(inputPoint);
+  var zeroGain = audioContext.createGain();
+  zeroGain.gain.value = 0.0;
+  inputPoint.connect(zeroGain);
+  zeroGain.connect(audioContext.destination);
+
   // Create a new volume meter and connect it.
   meter = createAudioMeter(audioContext);
   mediaStreamSource.connect(meter);
 
+  // only draw on canvas when clicked
   begin.addEventListener("click", function() {
     clickStartTime = internalStart = Date.now();
     drawLoop();
+    audioRecorder.clear();
+    audioRecorder.record();
   }, false);
 
+  // stop any drawing to the canvas
   stop.addEventListener("click", function() {
     window.cancelAnimationFrame(rafID);
   }, false);
 }
 
 
+/****************************************************************
+ * Drawing Volume Meter on canvas
+ */
 
 function drawLoop(time) {
 
@@ -162,9 +187,43 @@ function drawLoop(time) {
   if ((now - clickStartTime) > (howlongInSeconds * 1000)) {
     window.cancelAnimationFrame(rafID);
     rafID = null;
+    audioRecorder.stop();
+    audioRecorder.getBuffers(gotBuffers);
     return;
   }
 
   // set up the next visual callback
   rafID = window.requestAnimationFrame(drawLoop);
 }
+
+/****************************************************************
+ * Init
+ */
+
+window.onload = function() {
+
+  canvas = document.getElementById("meter");
+  apiVol = document.getElementById("apiVol");
+  volText = document.getElementById("vol");
+  begin = document.getElementById("begin");
+  countdown = document.getElementById("countdown");
+  stop = document.getElementById("stop");
+
+  // get exact center coordinates
+  x = canvas.width / 2;
+  y = canvas.height / 2;
+
+  // grab our canvas
+  context = canvas.getContext("2d");
+
+  // Attempt to get audio input
+  try {
+    // ask for an audio input
+    navigator.getUserMedia({
+      audio: true
+    }, gotStream, didntGetStream);
+  } catch (e) {
+    log_error('getUserMedia threw exception :' + e);
+  }
+
+};
