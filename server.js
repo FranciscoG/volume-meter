@@ -1,5 +1,6 @@
 var express = require('express');
 var path = require('path');
+var fs = require('fs');
 var app = express();
 
 app.set('views', __dirname + '/views');
@@ -9,7 +10,11 @@ app.get('/', function(req, res) {
   res.render('index', {
     title: 'Volume Meter'
   });
-})
+});
+
+app.post('/save', function(req, res) {
+  console.log(req);
+});
 
 app.use(express.static(path.join(__dirname, 'public')));
 

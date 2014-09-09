@@ -22,6 +22,48 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+/***************************************************************
+ * Some utilities
+ */
+
+var Ajax = (function(params) {
+  var request = new XMLHttpRequest();
+
+  if (params.type.toLowerCase() === "post") {
+    request.open('POST', params.url, true);
+    request.send(params.data);
+    return;
+  }
+
+  if (params.type.toLowerCase() === "get") {
+    request.open('GET', params.url, true);
+    request.responseType = params.data;
+
+    request.onload = function() {
+      if (request.status >= 200 && request.status < 400) {
+        // Success!
+        if (typeof params.success === "function") {
+          params.success(request.responseText);
+        }
+      } else {
+        // server returned an error
+        if (typeof params.onerror === "function") {
+          params.onerror("error");
+        }
+
+      }
+    };
+
+    if (typeof params.onerror === "function") {
+      request.onerror = params.onerror;
+    }
+
+    request.send();
+  }
+
+});
+
+
 var log_error = function() {
   return console.error(Array.prototype.slice.call(arguments));
 };
@@ -70,7 +112,7 @@ var clickStartTime = null;
 var count = 1;
 var howlongInSeconds = 5;
 
-var elapsed, begin, countdown, stop;
+var elapsed, begin, countdown, stop, save_link;
 
 // audio recorder related globals
 var audioInput = null,
@@ -208,6 +250,7 @@ window.onload = function() {
   begin = document.getElementById("begin");
   countdown = document.getElementById("countdown");
   stop = document.getElementById("stop");
+  save_link = document.getElementById("save");
 
   // get exact center coordinates
   x = canvas.width / 2;
