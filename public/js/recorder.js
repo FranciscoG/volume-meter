@@ -103,7 +103,6 @@ DEALINGS IN THE SOFTWARE.
         command: 'exportMonoWAV',
         type: type
       });
-
     };
 
     worker.onmessage = function(e) {
@@ -121,23 +120,11 @@ DEALINGS IN THE SOFTWARE.
     save_link.href = url;
     save_link.download = filename || 'output.wav';
 
-    var prep_file = new Ajax({
-      type: "GET",
-      url: url,
-      data: blob,
-      success: function(response) {
-        var formData = new FormData();
-        formData.append('fname', filename);
-        formData.append('audio', response);
-        var save_file = new Ajax({
-          type: "POST",
-          url: "/save",
-          data: formData
-        });
-      }
+    var save_file = new Ajax({
+      type: "POST",
+      url: "/save",
+      data: blob
     });
-
-
   };
 
   window.Recorder = Recorder;

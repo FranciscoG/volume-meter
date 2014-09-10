@@ -12,9 +12,32 @@ app.get('/', function(req, res) {
   });
 });
 
-app.post('/save', function(req, res) {
-  console.log(req);
+app.get('/play', function(req, res) {
+  res.render('play', {
+    title: 'Your Noise'
+  });
 });
+
+app.post('/save', function(req, res, next) {
+  var data = new Buffer('');
+  req.on('data', function(chunk) {
+    data = Buffer.concat([data, chunk]);
+  });
+  req.on('end', function() {
+    req.rawBody = data;
+    done(req, res);
+  });
+  next();
+});
+
+function done(req, res) {
+  fs.writeFile(__dirname + '/audio/' + 'my-noise-' + Date.now() + '.wav', req.rawBody, 'binary', function(err) {
+    if (err) {
+      throw err;
+    }
+    return;
+  });
+}
 
 app.use(express.static(path.join(__dirname, 'public')));
 
