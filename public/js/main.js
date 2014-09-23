@@ -99,7 +99,7 @@ navigator.requestAnimationFrame = navigator.requestAnimationFrame || navigator.w
   var meter = null;
   var context = null;
   var rafID = null;
-  var x, y, apiVol, volText;
+  var x, y, apiVol, volText, scoreText;
 
   // size of the circle
   var radius = 100;
@@ -191,23 +191,19 @@ navigator.requestAnimationFrame = navigator.requestAnimationFrame || navigator.w
     now = Date.now();
     elapsed = now - then;
 
+    // clear the background
     context.beginPath();
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.closePath();
 
-    // check if we're currently clipping
-    if (meter.checkClipping()) {
-      context.strokeStyle = "red";
-    } else {
-      context.strokeStyle = "blue";
-    }
+    context.strokeStyle = "blue";
 
-    // clear the background
     var startAngle = 0.5 * Math.PI;
     var endAngle = ((meter.volume * 1.5) * Math.PI) - 4;
+        
+    // this is the score that is based on the audio input and then multiplied to
+    // get a more normal looking number
     var volumation = Math.ceil(meter.volume * 1000);
-
-    //log(meter.volume, endAngle);
 
     context.beginPath();
     context.arc(x, y, radius, startAngle, endAngle, false);
@@ -226,8 +222,8 @@ navigator.requestAnimationFrame = navigator.requestAnimationFrame || navigator.w
 
       countdown.textContent = Math.ceil((now - clickStartTime) / 1000);
 
-      context.font = "bold 40px Arial";
-      context.fillText(volumation, x - 30, y);
+      // update the score
+      liveScore.textContent = volumation;
     }
 
     if ((now - clickStartTime) > (howlongInSeconds * 1000)) {
@@ -236,6 +232,7 @@ navigator.requestAnimationFrame = navigator.requestAnimationFrame || navigator.w
       log('animation done');
       audioRecorder.stop();
       audioRecorder.getBuffers(gotBuffers);
+      liveScore.textContent = vol.textContent;
       return;
     }
 
@@ -249,6 +246,7 @@ navigator.requestAnimationFrame = navigator.requestAnimationFrame || navigator.w
 
   window.onload = function() {
 
+    scoreText = document.getElementById("liveScore");
     canvas = document.getElementById("meter");
     apiVol = document.getElementById("apiVol");
     volText = document.getElementById("vol");
