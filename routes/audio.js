@@ -1,22 +1,9 @@
 var express = require('express');
+var fs = require('fs');
 var router = express.Router();
 
-// get Audio ID from route and return the player page
-// no DB connection needed
-router.get('/:audio_id?', function(req, res, next, post_id) {
-  var aID = req.params.id;
-  if (!aID) {
-    // send user back to the home page
-  } else {
-    res.render('play', {
-      title: 'Your Noise',
-      audioId: aID
-    });
-  }
-});
-
 // save new audio via ajax and create new DB entry
-router.post('/', function(req, res, next) {
+router.post('/save', function(req, res) {
   var data = new Buffer('');
   req.on('data', function(chunk) {
     data = Buffer.concat([data, chunk]);
@@ -25,17 +12,32 @@ router.post('/', function(req, res, next) {
     req.rawBody = data;
     done(req, res);
   });
-  next();
 });
+
+// get Audio ID from route and return the player page
+// no DB connection needed
+router.get('/:id(\\d+)', function(req, res) {
+  var aID = req.params.id;
+  res.render('play', {
+    title: 'Your Noise',
+    audioId: aID
+  });
+});
+
+// redirect back to home page if no route info exists
+router.get('/', function(req, res) {
+  res.redirect('/');
+});
+
 
 function done(req, res) {
   // save to S3 
-  // update MongoDB
-  fs.writeFile(__dirname + '/audio/' + 'my-noise-' + Date.now() + '.wav', req.rawBody, 'binary', function(err) {
+  // update MongoDB, etc
+  fs.writeFile('audio/' + 'my-noise-' + Date.now() + '.wav', req.rawBody, 'binary', function(err) {
     if (err) {
       throw err;
     }
-    return;
+    res.send(true);
   });
 }
 

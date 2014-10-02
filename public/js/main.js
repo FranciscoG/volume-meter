@@ -50,7 +50,6 @@ var Ajax = (function(params) {
         if (typeof params.onerror === "function") {
           params.onerror("error");
         }
-
       }
     };
 
@@ -200,7 +199,7 @@ navigator.requestAnimationFrame = navigator.requestAnimationFrame || navigator.w
 
     var startAngle = 0.5 * Math.PI;
     var endAngle = ((meter.volume * 1.5) * Math.PI) - 4;
-        
+
     // this is the score that is based on the audio input and then multiplied to
     // get a more normal looking number
     var volumation = Math.ceil(meter.volume * 1000);

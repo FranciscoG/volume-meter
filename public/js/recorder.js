@@ -122,8 +122,14 @@ DEALINGS IN THE SOFTWARE.
 
     var save_file = new Ajax({
       type: "POST",
-      url: "/save",
-      data: blob
+      url: "/scream/save",
+      data: blob,
+      success: function(data) {
+        console.log(data);
+      },
+      onerror: function(err) {
+        console.log(err);
+      }
     });
   };
 

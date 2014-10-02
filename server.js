@@ -1,30 +1,37 @@
+var debug = require('debug')('volume-meter');
 var express = require('express');
 var path = require('path');
-var fs = require('fs');
+
+var routes = require('./routes');
 var app = express();
 
 app.set('views', __dirname + '/views');
 app.set('view engine', 'jade');
 
-var audio = require('./routes/audio.js');
+// define our routes and their controllers 
+app.use('/scream', routes.audio);
+app.use('/scores', routes.scores);
+app.use('/', routes.index);
 
-app.use('/play', audio);
+// Set folder where public static content like CSS, images, 
+// and JS files will be loaded from
+app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/save', audio);
-
-app.get('/', function(req, res) {
-  res.render('index', {
-    title: 'Volume Meter'
+// 404 error handling
+app.use(function(req, res, next) {
+  res.status(404);
+  res.render('error', {
+    title: 'Volume Meter | Page not found'
   });
 });
-
-app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(function(err, req, res, next) {
   console.error(err.stack);
   res.status(500).send('Something broke!');
 });
 
-var server = app.listen(3000, function() {
-  console.log('Listening on port %d', server.address().port);
+app.set('port', process.env.PORT || 3000);
+
+var server = app.listen(app.get('port'), function() {
+  debug('Express server listening on port ' + server.address().port);
 });
