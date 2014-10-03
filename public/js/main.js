@@ -31,6 +31,16 @@ var Ajax = (function(params) {
 
   if (params.type.toLowerCase() === "post") {
     request.open('POST', params.url, true);
+    request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    request.onreadystatechange = function() {
+      if (request.readyState != 4 || request.status != 200) {
+        return;
+      }
+
+      if (typeof params.success === "function") {
+        params.success(request.responseText);
+      }
+    };
     request.send(params.data);
     return;
   }
@@ -62,6 +72,24 @@ var Ajax = (function(params) {
 
 });
 
+// simple form serializer for text inputs
+var serializer = function(formID) {
+  var f = document.getElementById(formID);
+  var inputs = f.getElementsByTagName('input');
+  var form_data = '';
+
+  for (var i = 0; i < inputs.length; i++) {
+    if (inputs[i].type !== 'submit') {
+      form_data += inputs[i].name + '=' +inputs[i].value + '&';
+    }
+  }
+  if (form_data.length > 0) {
+    form_data = form_data.substring(0, form_data.length - 1);
+  }
+  log(form_data);
+  return form_data;
+};
+
 
 var log_error = function() {
   return console.error(Array.prototype.slice.call(arguments));
@@ -86,19 +114,18 @@ navigator.cancelAnimationFrame = navigator.cancelAnimationFrame || navigator.web
 navigator.requestAnimationFrame = navigator.requestAnimationFrame || navigator.webkitRequestAnimationFrame || navigator.mozRequestAnimationFrame;
 
 
-/****************************************************************
- * Begin Global Variables
- */
-
 (function() {
 
+  /****************************************************************
+   * Begin Global Variables
+   */
 
   var audioContext = new AudioContext();
   var canvas = null;
   var meter = null;
   var context = null;
   var rafID = null;
-  var x, y, apiVol, volText, scoreText;
+  var x, y, apiVol, volText, liveScore;
 
   // size of the circle
   var radius = 100;
@@ -121,13 +148,64 @@ navigator.requestAnimationFrame = navigator.requestAnimationFrame || navigator.w
     inputPoint = null,
     audioRecorder = null;
 
-  function didntGetStream() {
-    log_error('Stream generation failed.');
-  }
+  /****************************************************************
+   * begin signup and share module
+   */
+
+  var infoPage = document.querySelector('.info');
+  var leaderboard = document.querySelector('.leaderboard');
+
+  var signup = {};
+
+  signup.done = function(data) {
+    log(data);
+    if (!!data) {
+      // hide form
+      infoPage.style.display = "none";
+      // populate share links and show the share
+
+      // update leaderboard
+
+      // show leaderboard
+      leaderboard.style.display = "block";
+    }
+  };
+
+  signup.submit = function(data) {
+
+    var form_submit = new Ajax({
+      type: "POST",
+      url: "/submit",
+      data: data,
+      success: signup.done
+    });
+  };
+
+  signup.init = function() {
+    // add score to hidden input in form
+    document.getElementById('hdnScore').value = liveScore.textContent;
+
+    // show form
+    infoPage.style.display = "block";
+
+    // listen for click on the submit button
+    var submit = document.getElementById("submitter");
+    submit.addEventListener('click', function(e) {
+      e.preventDefault();
+      var data = serializer('details');
+      signup.submit(data);
+    }, false);
+
+  };
+
 
   /****************************************************************
    * Functions for audio recording
    */
+
+  function didntGetStream() {
+    log_error('Stream generation failed.');
+  }
 
   function saveAudio() {
     audioRecorder.exportWAV(doneEncoding);
@@ -232,6 +310,7 @@ navigator.requestAnimationFrame = navigator.requestAnimationFrame || navigator.w
       audioRecorder.stop();
       audioRecorder.getBuffers(gotBuffers);
       liveScore.textContent = vol.textContent;
+      signup.init();
       return;
     }
 
@@ -245,7 +324,7 @@ navigator.requestAnimationFrame = navigator.requestAnimationFrame || navigator.w
 
   window.onload = function() {
 
-    scoreText = document.getElementById("liveScore");
+    liveScore = document.getElementById("liveScore");
     canvas = document.getElementById("meter");
     apiVol = document.getElementById("apiVol");
     volText = document.getElementById("vol");

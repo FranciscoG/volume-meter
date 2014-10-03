@@ -1,14 +1,14 @@
 var debug = require('debug')('volume-meter');
 var express = require('express');
 var path = require('path');
-
-var routes = require('./routes');
 var app = express();
 
+// set out views folder and template engine
 app.set('views', __dirname + '/views');
 app.set('view engine', 'jade');
 
 // define our routes and their controllers 
+var routes = require('./routes');
 app.use('/scream', routes.audio);
 app.use('/scores', routes.scores);
 app.use('/', routes.index);

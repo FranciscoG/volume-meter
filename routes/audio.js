@@ -24,15 +24,15 @@ router.get('/:id(\\d+)', function(req, res) {
   });
 });
 
-// redirect back to home page if no route info exists
+// redirect back to home page if just hitting /scream
 router.get('/', function(req, res) {
   res.redirect('/');
 });
 
 
 function done(req, res) {
-  // save to S3 
-  // update MongoDB, etc
+  // update MongoDB, get unique ID from mongo and put that in file name
+  // save to S3, but for now we're just saving locally
   fs.writeFile('audio/' + 'my-noise-' + Date.now() + '.wav', req.rawBody, 'binary', function(err) {
     if (err) {
       throw err;
